@@ -23,11 +23,14 @@ jobs:
     outputs:
       version: ${{ steps.game_version.outputs.version }}
     permissions: write-all
+    container:
+      image: barichello/godot-ci:4.3 # Set GODOT version here as well.
     steps:
       - name: checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # lfs: true
 
       - name: get game version
         id: game_version
@@ -37,13 +40,23 @@ jobs:
 
       - name: export game
         id: export
-        uses: firebelley/godot-export@v5.2.1
-        with:
-          godot_executable_download_url: https://downloads.tuxfamily.org/godotengine/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64.zip
-          godot_export_templates_download_url: https://downloads.tuxfamily.org/godotengine/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
-          relative_project_path: ./
-          archive_output: true
-          cache: true
+        run: |
+          mkdir -v -p ~/.local/share/godot/export_templates/
+          mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+
+          godot --headless --verbose --import --editor --quit
+
+          mkdir -v -p build/windows
+          godot --headless --verbose --export-release "Windows" build/windows/win64.exe
+          zip -j -r build/Windows.zip build/windows/*
+          mkdir -v -p build/linux
+          godot --headless --verbose --export-release "Linux/X11" build/linux/linux.x86_64
+          zip -j -r build/LinuxX11.zip build/linux/*
+          mkdir -v -p build/web
+          godot --headless --verbose --export-release "Web" build/web/index.html
+          zip -j -r build/Web.zip build/web/*
+
+          echo "archive_directory=$(pwd)/build" >> "$GITHUB_OUTPUT"
 
       - name: create release
         uses: ncipollo/release-action@v1.12.0
