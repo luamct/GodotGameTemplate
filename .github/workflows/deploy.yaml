@@ -1,14 +1,15 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Build & Deploy Game
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - '.github/workflows/**'
-      - '.gitignore'
-      - '**.md'
+  # push:
+  #   branches:
+  #     - master
+  #   paths-ignore:
+  #     - '.github/workflows/**'
+  #     - '.gitignore'
+  #     - '**.md'
 
 env:
   BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
